@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unsplash Image Search | Powered by n8n</title>
+  <meta name="description"
+    content="Search high-resolution Unsplash photos powered by an automated n8n workflow. Instant photo search, responsive gallery, and inspectable webhook JSON payload.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%236366f1%22><path d=%22M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z%22/></svg>">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <!-- Ambient background glow elements -->
+  <div class="ambient-glow glow-top" aria-hidden="true"></div>
+  <div class="ambient-glow glow-bottom" aria-hidden="true"></div>
+
+  <!-- Screen reader announcer -->
+  <div id="aria-live-status" class="sr-only" role="status" aria-live="polite"></div>
+
+  <div class="app-layout">
+    <!-- Top Navigation / Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+            <circle cx="9" cy="9" r="2" />
+            <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1 class="brand-title">Unsplash Lens</h1>
+          <span class="brand-subtitle">Powered by n8n Workflow</span>
+        </div>
+      </div>
+      <div class="header-badges">
+        <div class="webhook-badge" id="webhook-status" title="Webhook is operational">
+          <span class="status-pulse" aria-hidden="true"></span>
+          <span class="status-text">n8n Live Webhook</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Search Hero Section -->
+      <section class="hero-section" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <h2 id="hero-title" class="hero-heading">Explore High-Resolution Photography</h2>
+          <p class="hero-description">
+            Type any keyword to query our automated n8n workflow, which queries Unsplash and returns curated imagery.
+          </p>
+        </div>
+
+        <!-- Search Form Container -->
+        <form id="search-form" class="search-form" role="search" novalidate>
+          <div class="search-input-wrapper">
+            <span class="search-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
+            </span>
+            <input type="text" id="search-input" class="search-input"
+              placeholder="Search images (e.g. coffee, nature, cars, mountains)..." autocomplete="off"
+              spellcheck="false" aria-label="Image search keyword" required>
+            <button type="button" id="clear-btn" class="clear-btn" aria-label="Clear search input" hidden>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
+            </button>
+            <button type="submit" id="search-btn" class="search-btn" aria-label="Search photos">
+              <span class="btn-text">Search</span>
+              <span class="btn-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </span>
+              <span class="btn-spinner" aria-hidden="true" hidden>
+                <svg class="spinner-svg" viewBox="0 0 24 24" fill="none">
+                  <circle class="spinner-track" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" />
+                  <path class="spinner-head" d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3"
+                    stroke-linecap="round" />
+                </svg>
+              </span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Quick Tag Suggestions -->
+        <div class="tags-container" aria-label="Suggested search tags">
+          <span class="tags-label">Popular tags:</span>
+          <div class="tags-list" id="tag-chips">
+            <button type="button" class="tag-chip" data-query="coffee">
+              <span class="tag-emoji" aria-hidden="true">☕</span> coffee
+            </button>
+            <button type="button" class="tag-chip" data-query="nature">
+              <span class="tag-emoji" aria-hidden="true">🌿</span> nature
+            </button>
+            <button type="button" class="tag-chip" data-query="cars">
+              <span class="tag-emoji" aria-hidden="true">🏎️</span> cars
+            </button>
+            <button type="button" class="tag-chip" data-query="mountains">
+              <span class="tag-emoji" aria-hidden="true">🏔️</span> mountains
+            </button>
+            <button type="button" class="tag-chip" data-query="architecture">
+              <span class="tag-emoji" aria-hidden="true">🏛️</span> architecture
+            </button>
+            <button type="button" class="tag-chip" data-query="minimal">
+              <span class="tag-emoji" aria-hidden="true">✨</span> minimal
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Results Gallery Section -->
+      <section id="gallery-section" class="gallery-section" aria-labelledby="gallery-heading">
+        <div class="gallery-header">
+          <div class="gallery-meta">
+            <h3 id="gallery-heading" class="gallery-title">Search Results</h3>
+            <span id="results-query-pill" class="query-pill" hidden>
+              Query: <strong id="current-query-label"></strong>
+            </span>
+          </div>
+          <div class="gallery-stats">
+            <span id="results-count" class="meta-pill" hidden>3 Images</span>
+            <span id="results-latency" class="meta-pill" hidden>0ms</span>
+          </div>
+        </div>
+
+        <!-- Initial Welcome State -->
+        <div id="welcome-state" class="state-card welcome-card">
+          <div class="state-icon-wrapper" aria-hidden="true">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+              <path d="M11 8v6M8 11h6" />
+            </svg>
+          </div>
+          <h4 class="state-title">Ready to Discover</h4>
+          <p class="state-desc">Enter any topic above or click a popular tag to trigger the n8n webhook and fetch
+            high-resolution Unsplash photos.</p>
+        </div>
+
+        <!-- Loading State (Skeleton Grid) -->
+        <div id="loading-state" class="photo-grid skeleton-grid" hidden aria-hidden="true">
+          <div class="skeleton-card">
+            <div class="skeleton-shimmer"></div>
+            <div class="skeleton-caption"></div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton-shimmer"></div>
+            <div class="skeleton-caption"></div>
+          </div>
+          <div class="skeleton-card">
+            <div class="skeleton-shimmer"></div>
+            <div class="skeleton-caption"></div>
+          </div>
+        </div>
+
+        <!-- Photo Grid for Results -->
+        <div id="photo-grid" class="photo-grid" hidden>
+          <!-- Injected dynamically by app.js -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="state-card empty-card" hidden>
+          <div class="state-icon-wrapper warning" aria-hidden="true">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="8" y1="12" x2="16" y2="12" />
+            </svg>
+          </div>
+          <h4 class="state-title">No Images Returned</h4>
+          <p class="state-desc">The n8n webhook didn't return any image URLs for this query. Try a different term like
+            "coffee", "nature", or "mountains".</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error-state" class="state-card error-card" hidden>
+          <div class="state-icon-wrapper danger" aria-hidden="true">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </div>
+          <h4 class="state-title" id="error-title">Search Request Failed</h4>
+          <p class="state-desc" id="error-message">Unable to communicate with the n8n webhook. Please verify your
+            internet connection or try again.</p>
+          <button type="button" id="retry-btn" class="secondary-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
+            </svg>
+            <span>Retry Search</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Webhook JSON Inspector Section -->
+      <section id="json-inspector-section" class="inspector-section" aria-labelledby="inspector-heading">
+        <div class="inspector-card">
+          <div class="inspector-header" id="json-toggle" role="button" tabindex="0" aria-expanded="true"
+            aria-controls="inspector-body">
+            <div class="inspector-title-group">
+              <span class="inspector-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="16 18 22 12 16 6" />
+                  <polyline points="8 6 2 12 8 18" />
+                </svg>
+              </span>
+              <h3 id="inspector-heading" class="inspector-title">Webhook Raw JSON Payload</h3>
+              <span id="json-status-pill" class="status-chip chip-idle">Awaiting Query</span>
+            </div>
+            <div class="inspector-actions">
+              <button type="button" id="copy-json-btn" class="icon-action-btn" aria-label="Copy JSON to clipboard"
+                title="Copy JSON payload" disabled>
+                <svg class="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                  <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                </svg>
+                <span class="copy-text">Copy JSON</span>
+              </button>
+              <span class="chevron-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </span>
+            </div>
+          </div>
+          <div id="inspector-body" class="inspector-body" role="region" aria-labelledby="inspector-heading">
+            <div class="code-wrapper">
+              <pre><code id="json-code" class="language-json"><span class="json-comment">// Submit a search query to view the exact JSON payload returned by n8n...</span></code></pre>
+            </div>
+            <div class="inspector-footer">
+              <span class="webhook-endpoint-label">Endpoint:</span>
+              <code
+                class="endpoint-code">https://hopeu.app.n8n.cloud/webhook/a9bd47d1-aab4-4a9e-9605-7432f746ca10?q={query}</code>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p class="footer-text">
+        Created for seamless Unsplash photo search with automated n8n webhook integration.
+      </p>
+      <p class="footer-text">© 2026 Sikander Al Masum | <a href="https://sikander.dev/" target="_blank"
+          rel="noreferrer">sikander.dev</a>
+      </p>
+    </footer>
+  </div>
+
+  <!-- Fullscreen Lightbox Modal -->
+  <div id="lightbox-modal" class="lightbox-modal" role="dialog" aria-modal="true" aria-label="Image preview" hidden>
+    <div class="lightbox-backdrop" id="lightbox-backdrop"></div>
+    <div class="lightbox-dialog">
+      <header class="lightbox-topbar">
+        <span id="lightbox-counter" class="lightbox-meta">Image Preview</span>
+        <div class="lightbox-controls">
+          <a id="lightbox-external" href="#" target="_blank" rel="noopener noreferrer" class="lightbox-action-btn"
+            title="Open full resolution in new tab">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+              <polyline points="15 3 21 3 21 9" />
+              <line x1="10" y1="14" x2="21" y2="3" />
+            </svg>
+            <span>Open Original</span>
+          </a>
+          <button type="button" id="lightbox-close" class="lightbox-close-btn" aria-label="Close image preview">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+      </header>
+      <div class="lightbox-image-container">
+        <div id="lightbox-spinner" class="lightbox-spinner" hidden>
+          <svg class="spinner-svg" viewBox="0 0 24 24" fill="none">
+            <circle class="spinner-track" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" />
+            <path class="spinner-head" d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3"
+              stroke-linecap="round" />
+          </svg>
+          <span>Loading high resolution...</span>
+        </div>
+        <img id="lightbox-img" src="" alt="Enlarged photo preview" class="lightbox-image">
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notification for actions (e.g. Copied) -->
+  <div id="toast-notification" class="toast" role="status" aria-live="assertive" hidden>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+    <span id="toast-text">Copied to clipboard</span>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
