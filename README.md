@@ -28,7 +28,7 @@ graph LR
     App -->|2. GET ?q=coffee| n8n[n8n Webhook Workflow]
     n8n -->|3. Query API & extract URLs| Unsplash[(Unsplash API)]
     Unsplash -->|4. High-res photos| n8n
-    n8n -->|5. JSON: {images: [...]}| App
+    n8n -->|"5. JSON: {images: [...]}"| App
     App -->|6. Render Photo Grid & JSON Inspector| User
 ```
 
